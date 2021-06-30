@@ -13,6 +13,11 @@ textarea {
   padding: 10px;
 }
 
+textarea:active, textarea:focus, textarea:focus-visible{
+  outline: none;
+  /* border: solid 2px red;*/
+} 
+
 .jumbotron {
   text-align: center;
   background-color: transparent;
@@ -31,7 +36,7 @@ textarea {
 }
 
 .row {
-  white-space: pre-wrap;
+  /* white-space: pre-wrap; */
   height: 80px;
   border-top: 1px solid white;
 }
