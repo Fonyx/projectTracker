@@ -127,6 +127,21 @@ class MemoryManager{
     }
 }
 
+class HourObject{
+    constructor(hour, am, zeroIndex, period, text){
+        this.hour = hour;
+        this.am = am;
+        this.zeroIndex = zeroIndex;
+        this.period = period;
+        this.text = text;
+    }
+
+    render = () => {
+        addTimeBlockToPage(this.hour+this.am, this.period, this.text);
+    }
+
+}
+
 setPastPresentFuture();
 populateFullDay();
 
