@@ -1,6 +1,3 @@
-timeBlockContElement = $('#time_block_container');
-hoursList = [];
-
 // || HELPER FUNCTIONS
 // makes a jquery element
 function makeNewJqueryElement(elementType, classString, idString){
@@ -13,9 +10,9 @@ function makeNewJqueryElement(elementType, classString, idString){
     }
     return newElement;
 }
-
+// || FULL FUNCTIONS
 // function to populate 1 day of work sessions
-function addTimeBlockToPage(time, period, text){
+function addTimeBlockToPage(time, am, period, text){
     // time is an integer in [9, 10, 11, 12, 1, 2, 3, 4, 5]
     // period is a string in ['past', 'present', 'future']
     // text is any text stored in local storage
@@ -28,11 +25,16 @@ function addTimeBlockToPage(time, period, text){
 
     // class and id details
     hourElement.attr('id', 'hour-'+time);
+    hourElement.attr('data-id', time);
     textElement.attr('id', 'text-'+time);
+    textElement.attr('data-id', time);
+    textElement.attr('data-value', '');
+    textElement.attr('onkeyup',"this.setAttribute('data-value', this.value);");
     buttonElement.attr('id', 'button-'+time);
+    buttonElement.attr('data-id', time);
 
     // edit content of elements
-    hourElement.text(time);
+    hourElement.text(time+am);
     textElement.text(text);
 
     // attach all elements
@@ -46,11 +48,59 @@ function addTimeBlockToPage(time, period, text){
     timeBlockContElement.append(timeBlockElement);
 
 }
-
+// add event handlers to the buttons
+function addEventHandlersToIcons(){
+    let icons = $('i');
+    icons.on('click', handleTextChangeSaveEvent)
+}
+// handling update of details through event handler
+function handleTextChangeSaveEvent(event){
+        console.log(event);
+        // get data-id
+        let buttonElement = $(event.target).parent()
+        let textElement = buttonElement.siblings('textarea');
+        let hourElement = buttonElement.siblings('div');
+        console.log(textElement);
+        console.log(hourElement);
+        // get text
+        let textCont = textElement.data('value');
+        let hourCont = parseInt(hourElement.text(), 10);
+        // update corresponding hour object
+        if(textCont !== ""){
+            updateHourAtWith(hourCont, textCont)
+        // save memory object
+        memory.update(hoursList);
+        memory.save();
+        }
+}
+// function make all the hour objects
+function buildHourObjects(){
+    let objects = [];
+    for(let i=9; i <= 17; i++){
+        let am='am';
+        let hour = i;
+        if(i > 12){
+            am='pm'
+            hour -= 12;
+        }
+        let hourObject = new HourObject(hour, am, i, 'none', 'blank_auto');
+        objects.push(hourObject);
+    }
+    return objects
+}
+//  function to render all hour objects
+function renderFullDay(){
+    // for(let i =0; i<hoursList.length; i++){
+    //     hoursList[i].render();
+    // }
+    hoursList.forEach(hour => {
+        hour.render();
+    });
+}
 // function to move through the hours list and set periods
 function setPastPresentFuture(){
     // let currentMomentHour = moment().format('h');
-    let currentMomentHour = 16;
+    let currentMomentHour = 10;
 
     for(let i=0; i < hoursList.length; i++){
         if(currentMomentHour < hoursList[i].zeroIndex){
@@ -66,28 +116,13 @@ function setPastPresentFuture(){
     }
 }
 
-// function make all the hour objects
-function buildHourObjects(){
-    for(let i=9; i <= 17; i++){
-        let am='am';
-        let hour = i;
-        if(i > 12){
-            am='pm'
-            hour -= 12;
+// function to update a specific hour object with new text
+function updateHourAtWith(hourIndex, textContent){
+    for(let i=0; i<hoursList.length; i++){
+        if(hoursList[i].hour === hourIndex){
+            hoursList[i].text = textContent;
         }
-        let hourObject = new HourObject(hour, am, i, 'none', 'blank_auto');
-        hoursList.push(hourObject);
     }
-}
-
-//  function to render all hour objects
-function renderFullDay(){
-    // for(let i =0; i<hoursList.length; i++){
-    //     hoursList[i].render();
-    // }
-    hoursList.forEach(hour => {
-        hour.render();
-    });
 }
 
 class MemoryManager{
@@ -107,11 +142,10 @@ class MemoryManager{
         if (loadedResults){
             // add the results from local storage to results list
             this.details = loadedResults;
+            return true
         } else {
             // if object has no records in memory
-            if (debug){
-                console.log('No result found in local storage');
-            }
+            return false
         }
     }
 
@@ -147,15 +181,17 @@ class HourObject{
     }
 
     render = () => {
-        addTimeBlockToPage(this.hour, this.period, this.text);
+        addTimeBlockToPage(this.hour,this.am, this.period, this.text);
     }
-
 }
 
-let memory = new MemoryManager();
-
-buildHourObjects();
+timeBlockContElement = $('#time_block_container');
+hoursList = [];
+memory = new MemoryManager();
+let memoryFound = memory.load()
+if(!memoryFound){
+    hoursList = buildHourObjects();
+}
 setPastPresentFuture();
 renderFullDay();
-
-memory.save();
+addEventHandlersToIcons();
