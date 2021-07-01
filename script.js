@@ -1,7 +1,15 @@
 timeBlockContElement = $('#time_block_container');
-hoursDict = {1: '9', 2: '10', 3: '11', 4: '12', 5: '1', 6: '2', 7: '3', 8: '4', 9: '5'};
-hoursList = ['9', '10', '11', '12', '1', '2', '3', '4', '5'];
-
+hoursList = [
+    {hour: 9, am: 'AM', zeroIndex: 9, period: 'none'},
+    {hour: 10, am: 'AM', zeroIndex: 10, period: 'none'},
+    {hour: 11, am: 'AM', zeroIndex: 11, period: 'none'},
+    {hour: 12, am: 'PM', zeroIndex: 12, period: 'none'},
+    {hour: 1, am: 'PM', zeroIndex: 13, period: 'none'},
+    {hour: 2, am: 'PM', zeroIndex: 14, period: 'none'},
+    {hour: 3, am: 'PM', zeroIndex: 15, period: 'none'},
+    {hour: 4, am: 'PM', zeroIndex: 16, period: 'none'},
+    {hour: 5, am: 'PM', zeroIndex: 17, period: 'none'},
+]
 
 // || HELPER FUNCTIONS
 // makes a jquery element
@@ -15,11 +23,9 @@ function makeNewJqueryElement(elementType, classString, idString){
     }
     return newElement;
 }
-// gets current hour as integer
-function currentHour(){
-    currentMoment = moment();
-    let currentHour = parseInt(currentMoment.format('h'), 10);
-    return currentHour
+// gets current time side ie am or pm
+function getCurrentTimeSide(){
+    return moment().format('a');
 }
 // function to swap index number to a base 12 counter
 function getTimeSideFromIndex(index){
@@ -29,6 +35,7 @@ function getTimeSideFromIndex(index){
     }
     return am;
 }
+
 function getTimeFromIndex(index){
     let hours = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
     return hours[index];
@@ -62,22 +69,31 @@ function addTimeBlockToPage(time, period, text){
 
 }
 
+// function to move through the hours list and set periods
+function setPastPresentFuture(){
+    let currentMomentHour = moment().format('h');
+
+    for(let i=0; i < hoursList.length; i++){
+        if(currentMomentHour < hoursList[i].zeroIndex){
+            console.log($`currently:${currentMomentHour} is less than:${hoursList[i]} so FUTURE PERIOD`);
+            hoursList[i].period = 'future';
+        } else if(currentMomentHour === hoursList[i].zeroIndex){
+            console.log($`currently:${currentMomentHour} is equal to:${hoursList[i]} so PRESENT PERIOD`);
+            hoursList[i].period = 'present';
+        } else {
+            console.log($`currently:${currentMomentHour} is greater than:${hoursList[i]} so PAST PERIOD`);
+            hoursList[i].period = 'past';
+        }
+    }
+}
+
 // function to populate an entire day - first 9 elements of indexToHour
 function populateFullDay(){
-    let moment = currentHour();
-    // loop through hours 9AM to 5PM
-    for(let i=0; i <= hoursList.length; i++){
-        let hour = hoursList[i];
-        let am = getTimeSideFromIndex();
-        let period = 'past';
-        // case for present
-        if(hour===moment){
-            period = 'present';
-        // override for future
-        } else if(hour > moment){
-            period = 'future';
-        } 
-        addTimeBlockToPage(hour+am, period, 'blank');
+    // loop through hoursList
+    for(let i=0; i < hoursList.length; i++){
+        addTimeBlockToPage(hoursList[i].hour+hoursList[i].am, 
+            hoursList[i].period, 
+            hoursList[i].period);
     }
 }
 class MemoryManager{
@@ -124,4 +140,5 @@ class MemoryManager{
 
 }
 
+setPastPresentFuture();
 populateFullDay();
