@@ -1,15 +1,5 @@
 timeBlockContElement = $('#time_block_container');
-hoursList = [
-    {hour: 9, am: 'AM', zeroIndex: 9, period: 'none', text: 'blank'},
-    {hour: 10, am: 'AM', zeroIndex: 10, period: 'none', text: 'blank'},
-    {hour: 11, am: 'AM', zeroIndex: 11, period: 'none', text: 'blank'},
-    {hour: 12, am: 'PM', zeroIndex: 12, period: 'none', text: 'blank'},
-    {hour: 1, am: 'PM', zeroIndex: 13, period: 'none', text: 'blank'},
-    {hour: 2, am: 'PM', zeroIndex: 14, period: 'none', text: 'blank'},
-    {hour: 3, am: 'PM', zeroIndex: 15, period: 'none', text: 'blank'},
-    {hour: 4, am: 'PM', zeroIndex: 16, period: 'none', text: 'blank'},
-    {hour: 5, am: 'PM', zeroIndex: 17, period: 'none', text: 'blank'},
-]
+hoursList = [];
 
 // || HELPER FUNCTIONS
 // makes a jquery element
@@ -25,7 +15,7 @@ function makeNewJqueryElement(elementType, classString, idString){
 }
 
 // function to populate 1 day of work sessions
-function addTimeBlockToPage(index, time, period, text){
+function addTimeBlockToPage(time, period, text){
     // time is an integer in [9, 10, 11, 12, 1, 2, 3, 4, 5]
     // period is a string in ['past', 'present', 'future']
     // text is any text stored in local storage
@@ -37,9 +27,9 @@ function addTimeBlockToPage(index, time, period, text){
     let iconElement = makeNewJqueryElement('i', 'bi bi-save');
 
     // class and id details
-    hourElement.attr('id', 'hour-'+index);
-    textElement.attr('id', 'text-'+index);
-    buttonElement.attr('id', 'button-'+index);
+    hourElement.attr('id', 'hour-'+time);
+    textElement.attr('id', 'text-'+time);
+    buttonElement.attr('id', 'button-'+time);
 
     // edit content of elements
     hourElement.text(time);
@@ -59,37 +49,52 @@ function addTimeBlockToPage(index, time, period, text){
 
 // function to move through the hours list and set periods
 function setPastPresentFuture(){
-    let currentMomentHour = moment().format('h');
+    // let currentMomentHour = moment().format('h');
+    let currentMomentHour = 16;
 
     for(let i=0; i < hoursList.length; i++){
         if(currentMomentHour < hoursList[i].zeroIndex){
-            console.log($`currently:${currentMomentHour} is less than:${hoursList[i]} so FUTURE PERIOD`);
+            // console.log($`currently:${currentMomentHour} is less than:${hoursList[i]} so FUTURE PERIOD`);
             hoursList[i].period = 'future';
         } else if(currentMomentHour === hoursList[i].zeroIndex){
-            console.log($`currently:${currentMomentHour} is equal to:${hoursList[i]} so PRESENT PERIOD`);
+            // console.log($`currently:${currentMomentHour} is equal to:${hoursList[i]} so PRESENT PERIOD`);
             hoursList[i].period = 'present';
         } else {
-            console.log($`currently:${currentMomentHour} is greater than:${hoursList[i]} so PAST PERIOD`);
+            // console.log($`currently:${currentMomentHour} is greater than:${hoursList[i]} so PAST PERIOD`);
             hoursList[i].period = 'past';
         }
     }
 }
 
-// function to populate an entire day - first 9 elements of indexToHour
-function populateFullDay(){
-    // loop through hoursList
-    for(let i=0; i < hoursList.length; i++){
-        addTimeBlockToPage(hoursList[i].zeroIndex, hoursList[i].hour+hoursList[i].am, 
-            hoursList[i].period, 
-            hoursList[i].text);
+// function make all the hour objects
+function buildHourObjects(){
+    for(let i=9; i <= 17; i++){
+        let am='am';
+        let hour = i;
+        if(i > 12){
+            am='pm'
+            hour -= 12;
+        }
+        let hourObject = new HourObject(hour, am, i, 'none', 'blank_auto');
+        hoursList.push(hourObject);
     }
+}
+
+//  function to render all hour objects
+function renderFullDay(){
+    // for(let i =0; i<hoursList.length; i++){
+    //     hoursList[i].render();
+    // }
+    hoursList.forEach(hour => {
+        hour.render();
+    });
 }
 
 class MemoryManager{
     // construct score with initials: value
-    constructor(hoursList){
+    constructor(){
         this.memoryName = 'userDayLog';
-        this.details = hoursList;
+        this.details = [];
     }
 
     // function that loads all details from storage
@@ -115,6 +120,11 @@ class MemoryManager{
         localStorage.setItem(this.memoryName, JSON.stringify(this.details));
     }
 
+    // add new object
+    update(hoursList){
+        this.details = hoursList;
+    }
+
     // edit a specific detail
     updateDetail(index, text){
         self.details[index] = text;
@@ -137,14 +147,15 @@ class HourObject{
     }
 
     render = () => {
-        addTimeBlockToPage(this.hour+this.am, this.period, this.text);
+        addTimeBlockToPage(this.hour, this.period, this.text);
     }
 
 }
 
-setPastPresentFuture();
-populateFullDay();
+let memory = new MemoryManager();
 
-let memory = new MemoryManager(hoursList);
+buildHourObjects();
+setPastPresentFuture();
+renderFullDay();
 
 memory.save();
