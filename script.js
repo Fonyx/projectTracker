@@ -99,8 +99,7 @@ function renderFullDay(){
 }
 // function to move through the hours list and set periods
 function setPastPresentFuture(){
-    // let currentMomentHour = moment().format('h');
-    let currentMomentHour = 10;
+    let currentMomentHour = parseInt(moment().format('h'));
 
     for(let i=0; i < hoursList.length; i++){
         if(currentMomentHour < hoursList[i].zeroIndex){
