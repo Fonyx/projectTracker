@@ -91,9 +91,7 @@ function buildHourObjects(){
 }
 //  function to render all hour objects
 function renderFullDay(){
-    for(let i =0; i<hoursList.length; i++){
-        render(hoursList[i]);
-    }
+    
 }
 // function to move through the hours list and set periods
 function setPastPresentFuture(){
@@ -113,58 +111,22 @@ function setPastPresentFuture(){
     }
 }
 
+// set interval for current day time
+function setTimerForClock(){
+    // get container for clock
+    clockBlockElement = $('#currentDay');
+    let clock = setInterval(function(){
+        let currentTime = moment().format("MMMM Do YYYY, h:mm:ss a");
+        clockBlockElement.text(currentTime);
+    }, 800);
+}
+
 // function to update a specific hour object with new text
 function updateHourAtWith(hourIndex, textContent){
     for(let i=0; i<hoursList.length; i++){
         if(hoursList[i].hour === hourIndex){
             hoursList[i].text = textContent;
         }
-    }
-}
-
-class MemoryManager{
-    // construct score with initials: value
-    constructor(){
-        this.memoryName = 'userDayLog';
-        this.details = [];
-    }
-
-    // function that loads all details from storage
-    load(){
-        // reset details
-        this.details = [];
-        // get results from the save store
-        let memoryAsString = localStorage.getItem(this.memoryName);
-        let loadedResults = JSON.parse(memoryAsString);
-        if (loadedResults){
-            // add the results from local storage to results list
-            this.details = loadedResults;
-            return true
-        } else {
-            // if object has no records in memory
-            return false
-        }
-    }
-
-    // saves details to local storage
-    save(){
-        localStorage.setItem(this.memoryName, JSON.stringify(this.details));
-    }
-
-    // add new object
-    update(hoursList){
-        this.details = hoursList;
-    }
-
-    // edit a specific detail
-    updateDetail(index, text){
-        self.details[index] = text;
-    }
-
-    // reset local memory
-    resetLocalMemory(){
-        localStorage.clear();
-        console.log('reset local storage was complete');
     }
 }
 
@@ -192,12 +154,20 @@ class HourObject{
     }
 }
 
+setTimerForClock();
+// get container for blocks
 timeBlockContElement = $('#time_block_container');
-
+// gather locally stored details
 hoursList = load();
+// if no details loaded, build fresh ones
 if(hoursList === null){
     hoursList = buildHourObjects();
 }
+// move through all hours and set period
 setPastPresentFuture();
-renderFullDay();
+
+// render all hours
+for(let i =0; i<hoursList.length; i++){
+    render(hoursList[i]);
+}
 addEventHandlersToIcons();
