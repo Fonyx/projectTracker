@@ -57,13 +57,10 @@ function addEventHandlersToIcons(){
 
 // handling update of details through event handler
 function handleTextChangeSaveEvent(event){
-        console.log(event);
         // get data-id
         let buttonElement = $(event.target).parent()
         let textElement = buttonElement.siblings('textarea');
         let hourElement = buttonElement.siblings('div');
-        console.log(textElement);
-        console.log(hourElement);
         // get text
         let textCont = textElement.data('value');
         let hourCont = parseInt(hourElement.text(), 10);
@@ -78,19 +75,46 @@ function handleTextChangeSaveEvent(event){
 }
 
 // function make all the hour objects
-function buildHourObjects(){
-    let objects = [];
-    for(let i=9; i <= 17; i++){
-        let am='am';
-        let hour = i;
-        if(i > 12){
-            am='pm'
-            hour -= 12;
-        }
-        let hourObject = new HourObject(hour, am, i, 'none', '');
-        objects.push(hourObject);
-    }
+function buildHourObjects(){ 
+    let objects = []; 
+    objects.push(new HourObject(9, 'am', 9, 'none', ''));
+    objects.push(new HourObject(10, 'am', 10, 'none', ''));
+    objects.push(new HourObject(11, 'am', 11, 'none', ''));
+    objects.push(new HourObject(12, 'pm', 12, 'none', ''));
+    objects.push(new HourObject(1, 'pm', 13, 'none', ''));
+    objects.push(new HourObject(2, 'pm', 14, 'none', ''));
+    objects.push(new HourObject(3, 'pm', 15, 'none', ''));
+    objects.push(new HourObject(4, 'pm', 16, 'none', ''));
+    objects.push(new HourObject(5, 'pm', 17, 'none', ''));
+    // for(let i=9; i <= 17; i++){
+    //     let am='am';
+    //     let hour = i;
+    //     if(i > 12){
+    //         am='pm'
+    //         hour -= 12;
+    //     }
+    //     let hourObject = new HourObject(hour, am, i, 'none', '');
+    //     objects.push(hourObject);
+    // }
     return objects
+}
+
+// get current 24 hour value [0-23] - tested
+function getCurrentMomentAs24Hour(currentMoment = moment()){
+    let currentMomentHour = parseInt(currentMoment.format('h'));
+    let currentTimeSide = currentMoment.format('a');
+    if(currentTimeSide == 'pm'){
+        // case for midday, don't add 12
+        if(currentMomentHour != 12){
+            currentMomentHour += 12;
+        }
+    } else{
+        // case for midnight
+        if(currentMomentHour === 12){
+            currentMomentHour = 0;
+        }
+    }
+    return currentMomentHour;
 }
 
 // isolating memory object to functions instead
@@ -130,18 +154,18 @@ function save(hours){
 
 // function to move through the hours list and set periods
 function setPastPresentFuture(){
-    let currentMomentHour = parseInt(moment().format('h'), 10);
+    let current24HourZeroIndex = getCurrentMomentAs24Hour();
 
     for(let i=0; i < hoursList.length; i++){
-        if(currentMomentHour < hoursList[i].zeroIndex){
+        if(current24HourZeroIndex > hoursList[i].zeroIndex){
             // console.log($`currently:${currentMomentHour} is less than:${hoursList[i]} so FUTURE PERIOD`);
-            hoursList[i].period = 'future';
-        } else if(currentMomentHour === hoursList[i].zeroIndex){
+            hoursList[i].period = 'past';
+        } else if(current24HourZeroIndex === hoursList[i].zeroIndex){
             // console.log($`currently:${currentMomentHour} is equal to:${hoursList[i]} so PRESENT PERIOD`);
             hoursList[i].period = 'present';
         } else {
             // console.log($`currently:${currentMomentHour} is greater than:${hoursList[i]} so PAST PERIOD`);
-            hoursList[i].period = 'past';
+            hoursList[i].period = 'future';
         }
     }
 }
@@ -187,3 +211,6 @@ setPastPresentFuture();
 renderHours();
 
 addEventHandlersToIcons();
+
+// module exports
+module.exports = getCurrentMomentAs24Hour;
