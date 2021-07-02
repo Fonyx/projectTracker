@@ -69,8 +69,9 @@ function handleTextChangeSaveEvent(event){
         if(textCont !== ""){
             updateHourAtWith(hourCont, textCont)
         // save memory object
-        memory.update(hoursList);
-        memory.save();
+        save(hoursList);
+        // reload page
+        location.reload();
         }
 }
 // function make all the hour objects
@@ -90,16 +91,13 @@ function buildHourObjects(){
 }
 //  function to render all hour objects
 function renderFullDay(){
-    // for(let i =0; i<hoursList.length; i++){
-    //     hoursList[i].render();
-    // }
-    hoursList.forEach(hour => {
-        hour.render();
-    });
+    for(let i =0; i<hoursList.length; i++){
+        render(hoursList[i]);
+    }
 }
 // function to move through the hours list and set periods
 function setPastPresentFuture(){
-    let currentMomentHour = parseInt(moment().format('h'));
+    let currentMomentHour = parseInt(moment().format('h'), 10);
 
     for(let i=0; i < hoursList.length; i++){
         if(currentMomentHour < hoursList[i].zeroIndex){
@@ -170,6 +168,20 @@ class MemoryManager{
     }
 }
 
+// isolating memory object to functions instead
+function load(){
+    let memoryAsString = localStorage.getItem('hoursObject');
+    return JSON.parse(memoryAsString);
+}
+
+function save(hours){
+    localStorage.setItem('hoursObject', JSON.stringify(hours));
+}
+
+function render(hour) {
+    addTimeBlockToPage(hour.hour,hour.am, hour.period, hour.text);
+}
+
 class HourObject{
     constructor(hour, am, zeroIndex, period, text){
         this.hour = hour;
@@ -178,17 +190,12 @@ class HourObject{
         this.period = period;
         this.text = text;
     }
-
-    render = () => {
-        addTimeBlockToPage(this.hour,this.am, this.period, this.text);
-    }
 }
 
 timeBlockContElement = $('#time_block_container');
-hoursList = [];
-memory = new MemoryManager();
-let memoryFound = memory.load()
-if(!memoryFound){
+
+hoursList = load();
+if(hoursList === null){
     hoursList = buildHourObjects();
 }
 setPastPresentFuture();
