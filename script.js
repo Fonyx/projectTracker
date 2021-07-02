@@ -100,7 +100,7 @@ function buildHourObjects(){
 }
 
 // get current 24 hour value [0-23] - tested
-function getCurrentMomentAs24Hour(currentMoment = moment()){
+function getCurrentMomentAs24Hour (currentMoment = moment()){
     let currentMomentHour = parseInt(currentMoment.format('h'));
     let currentTimeSide = currentMoment.format('a');
     if(currentTimeSide == 'pm'){
@@ -173,7 +173,7 @@ function setPastPresentFuture(){
 // set interval for current day time
 function setTimerForClock(){
     // get container for clock
-    clockBlockElement = $('#currentDay');
+    let clockBlockElement = $('#currentDay');
     let clock = setInterval(function(){
         let currentTime = moment().format("MMMM Do YYYY, h:mm:ss a");
         clockBlockElement.text(currentTime);
@@ -211,6 +211,3 @@ setPastPresentFuture();
 renderHours();
 
 addEventHandlersToIcons();
-
-// module exports
-module.exports = getCurrentMomentAs24Hour;
