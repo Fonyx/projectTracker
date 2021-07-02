@@ -48,11 +48,13 @@ function addTimeBlockToPage(time, am, period, text){
     timeBlockContElement.append(timeBlockElement);
 
 }
+
 // add event handlers to the buttons
 function addEventHandlersToIcons(){
     let icons = $('i');
     icons.on('click', handleTextChangeSaveEvent)
 }
+
 // handling update of details through event handler
 function handleTextChangeSaveEvent(event){
         console.log(event);
@@ -68,12 +70,13 @@ function handleTextChangeSaveEvent(event){
         // update corresponding hour object
         if(textCont !== ""){
             updateHourAtWith(hourCont, textCont)
-        // save memory object
-        save(hoursList);
-        // reload page
-        location.reload();
+            // save memory object
+            save(hoursList);
+            // reload page
+            location.reload();
         }
 }
+
 // function make all the hour objects
 function buildHourObjects(){
     let objects = [];
@@ -84,15 +87,47 @@ function buildHourObjects(){
             am='pm'
             hour -= 12;
         }
-        let hourObject = new HourObject(hour, am, i, 'none', 'blank_auto');
+        let hourObject = new HourObject(hour, am, i, 'none', '');
         objects.push(hourObject);
     }
     return objects
 }
-//  function to render all hour objects
-function renderFullDay(){
-    
+
+// isolating memory object to functions instead
+function load(){
+    let memoryAsString = localStorage.getItem('hoursObject');
+    return JSON.parse(memoryAsString);
 }
+
+function reloadHours(){
+    hoursList = load();
+    // if no details loaded, build fresh ones
+    if(hoursList === null){
+        hoursList = buildHourObjects();
+    }
+}
+
+function renderHours(){
+    for(let i =0; i<hoursList.length; i++){
+        let hour = hoursList[i];
+        addTimeBlockToPage(hour.hour,hour.am, hour.period, hour.text);
+    }
+}
+
+function resetDays(){
+    // set text of all hours to empty
+    for(let i =0; i<hoursList.length; i++){
+        hoursList[i].text = "";
+        save(hoursList);
+    }
+    // reload page
+    location.reload();
+}
+
+function save(hours){
+    localStorage.setItem('hoursObject', JSON.stringify(hours));
+}
+
 // function to move through the hours list and set periods
 function setPastPresentFuture(){
     let currentMomentHour = parseInt(moment().format('h'), 10);
@@ -130,20 +165,6 @@ function updateHourAtWith(hourIndex, textContent){
     }
 }
 
-// isolating memory object to functions instead
-function load(){
-    let memoryAsString = localStorage.getItem('hoursObject');
-    return JSON.parse(memoryAsString);
-}
-
-function save(hours){
-    localStorage.setItem('hoursObject', JSON.stringify(hours));
-}
-
-function render(hour) {
-    addTimeBlockToPage(hour.hour,hour.am, hour.period, hour.text);
-}
-
 class HourObject{
     constructor(hour, am, zeroIndex, period, text){
         this.hour = hour;
@@ -158,16 +179,11 @@ setTimerForClock();
 // get container for blocks
 timeBlockContElement = $('#time_block_container');
 // gather locally stored details
-hoursList = load();
-// if no details loaded, build fresh ones
-if(hoursList === null){
-    hoursList = buildHourObjects();
-}
+reloadHours();
 // move through all hours and set period
 setPastPresentFuture();
 
 // render all hours
-for(let i =0; i<hoursList.length; i++){
-    render(hoursList[i]);
-}
+renderHours();
+
 addEventHandlersToIcons();
