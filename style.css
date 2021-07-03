@@ -64,13 +64,13 @@ textarea:active, textarea:focus, textarea:focus-visible{
 }
 
 .present {
-  background-color: var(--tertiary);
-  color: var(--secondary);
+  background-color: var(--secondary);
+  color: var(--primary);
 }
 
 .future {
   background-color: var(--tertiary);
-  color: var(--primary);
+  color: var(--secondary);
 }
 
 .saveBtn {
