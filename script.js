@@ -95,21 +95,41 @@ function getCurrentMomentAs24Hour (currentMoment = moment()){
 
 // handling update of details through event handler
 function handleTextChangeSaveEvent(event){
-        // get data-id
-        let buttonElement = $(event.target).parent();
-        let textElement = buttonElement.siblings('textarea');
-        let hourElement = buttonElement.siblings('div');
-        // get text
-        let textCont = textElement.data('value');
-        let hourCont = parseInt(hourElement.text(), 10);
+    // get data-id
+    let buttonElement = $(event.target).parent();
+    let textElement = buttonElement.siblings('textarea');
+    let hourElement = buttonElement.siblings('div');
+    // get text
+    let textCont = textElement.data('value');
+    let hourCont = parseInt(hourElement.text(), 10);
+    // update corresponding hour object
+    if(textCont.trim() !== ""){
+        updateHourAtWith(hourCont, textCont)
+        // save memory object
+        save(hoursList);
+        // reload page
+        location.reload();
+    }
+}
+
+function saveAllText(){
+    // get all time blocks
+    let timeBlockElements = $('.time-block');
+    // loop through all rows
+    for(let i =0; i< timeBlockElements.length; i++){
+        let currentTimeBlock = $(timeBlockElements[i]);
+        // get their text and hour
+        let text = currentTimeBlock.children().find('textarea').attr('data-value');
+        let hour = parseInt(currentTimeBlock.children().text(), 10);
         // update corresponding hour object
-        if(textCont !== ""){
-            updateHourAtWith(hourCont, textCont)
-            // save memory object
-            save(hoursList);
-            // reload page
-            location.reload();
+        if(text.trim() !== ""){
+            updateHourAtWith(hour, text);
         }
+        // save memory object
+        save(hoursList);
+        // reload page
+        location.reload();
+    }
 }
 
 function load(){
