@@ -26,9 +26,11 @@ function addTimeBlockToPage(time, am, period, text){
     // class and id details
     hourElement.attr('id', 'hour-'+time);
     hourElement.attr('data-id', time);
+    hourElement.addClass('pt-4');
     textElement.attr('id', 'text-'+time);
     textElement.attr('data-id', time);
     textElement.attr('data-value', '');
+    // add an inline function that appends the data-value with the added key
     textElement.attr('onkeyup',"this.setAttribute('data-value', this.value);");
     buttonElement.attr('id', 'button-'+time);
     buttonElement.attr('data-id', time);
@@ -52,50 +54,24 @@ function addTimeBlockToPage(time, am, period, text){
 // add event handlers to the buttons
 function addEventHandlersToIcons(){
     let icons = $('i');
-    icons.on('click', handleTextChangeSaveEvent)
+    icons.on('click', handleTextChangeSaveEvent);
 }
 
-// handling update of details through event handler
-function handleTextChangeSaveEvent(event){
-        // get data-id
-        let buttonElement = $(event.target).parent()
-        let textElement = buttonElement.siblings('textarea');
-        let hourElement = buttonElement.siblings('div');
-        // get text
-        let textCont = textElement.data('value');
-        let hourCont = parseInt(hourElement.text(), 10);
-        // update corresponding hour object
-        if(textCont !== ""){
-            updateHourAtWith(hourCont, textCont)
-            // save memory object
-            save(hoursList);
-            // reload page
-            location.reload();
-        }
-}
-
-// function make all the hour objects
+// make all the hour objects
 function buildHourObjects(){ 
     let objects = []; 
-    objects.push(new HourObject(9, 'am', 9, 'none', ''));
-    objects.push(new HourObject(10, 'am', 10, 'none', ''));
-    objects.push(new HourObject(11, 'am', 11, 'none', ''));
-    objects.push(new HourObject(12, 'pm', 12, 'none', ''));
-    objects.push(new HourObject(1, 'pm', 13, 'none', ''));
-    objects.push(new HourObject(2, 'pm', 14, 'none', ''));
-    objects.push(new HourObject(3, 'pm', 15, 'none', ''));
-    objects.push(new HourObject(4, 'pm', 16, 'none', ''));
-    objects.push(new HourObject(5, 'pm', 17, 'none', ''));
-    // for(let i=9; i <= 17; i++){
-    //     let am='am';
-    //     let hour = i;
-    //     if(i > 12){
-    //         am='pm'
-    //         hour -= 12;
-    //     }
-    //     let hourObject = new HourObject(hour, am, i, 'none', '');
-    //     objects.push(hourObject);
-    // }
+    // using the 24 hour zero-indexed counter values (9=9AM: 17=5PM)
+    for(let i=9; i <= 17; i++){
+        let am='am';
+        let hour = i;
+        // if over 12 - afternoon case so change to PM
+        if(i > 12){
+            am='pm'
+            hour -= 12;
+        }
+        let hourObject = new HourObject(hour, am, i, 'none', '');
+        objects.push(hourObject);
+    }
     return objects
 }
 
@@ -117,7 +93,25 @@ function getCurrentMomentAs24Hour (currentMoment = moment()){
     return currentMomentHour;
 }
 
-// isolating memory object to functions instead
+// handling update of details through event handler
+function handleTextChangeSaveEvent(event){
+        // get data-id
+        let buttonElement = $(event.target).parent();
+        let textElement = buttonElement.siblings('textarea');
+        let hourElement = buttonElement.siblings('div');
+        // get text
+        let textCont = textElement.data('value');
+        let hourCont = parseInt(hourElement.text(), 10);
+        // update corresponding hour object
+        if(textCont !== ""){
+            updateHourAtWith(hourCont, textCont)
+            // save memory object
+            save(hoursList);
+            // reload page
+            location.reload();
+        }
+}
+
 function load(){
     let memoryAsString = localStorage.getItem('hoursObject');
     return JSON.parse(memoryAsString);
@@ -172,11 +166,11 @@ function setPastPresentFuture(){
 
 // set interval for current day time
 function setTimerForClock(){
-    // get container for clock
-    let clockBlockElement = $('#currentDay');
+    // initial setting of clock before first interval - otherwise user waits 0.8 seconds without a clock
+    // and clock appears later which shuffles the hour board - bad UX
+    updateClock();
     let clock = setInterval(function(){
-        let currentTime = moment().format("MMMM Do YYYY, h:mm:ss a");
-        clockBlockElement.text(currentTime);
+        updateClock();
     }, 800);
 }
 
@@ -189,6 +183,14 @@ function updateHourAtWith(hourIndex, textContent){
     }
 }
 
+// update clock ticks on dom
+function updateClock(){
+    // get container for clock
+    let clockBlockElement = $('#currentDay');
+    let currentTime = moment().format("MMMM Do YYYY, h:mm:ss a");
+    clockBlockElement.text(currentTime);
+}
+
 class HourObject{
     constructor(hour, am, zeroIndex, period, text){
         this.hour = hour;
@@ -199,15 +201,21 @@ class HourObject{
     }
 }
 
+// || RUNTIME
+// set clock and add interval for update
 setTimerForClock();
+
 // get container for blocks
 timeBlockContElement = $('#time_block_container');
+
 // gather locally stored details
 reloadHours();
+
 // move through all hours and set period
 setPastPresentFuture();
 
 // render all hours
 renderHours();
 
+// add save event to icons
 addEventHandlersToIcons();
